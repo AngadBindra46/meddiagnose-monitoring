@@ -1,0 +1,41 @@
+services:
+  # ─────────────────────────────────────────────
+  # Prometheus (metrics collection)
+  # ─────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./alerting/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro
+      - promdata:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - meddiagnose
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # Grafana (dashboards & alerting)
+  # ─────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:10.4.0
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafanadata:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - meddiagnose
+    restart: unless-stopped
+
+volumes:
+  promdata:
+  grafanadata:
+
+networks:
+  meddiagnose:
+    external: true

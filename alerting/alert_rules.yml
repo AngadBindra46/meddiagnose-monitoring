@@ -1,0 +1,38 @@
+groups:
+  - name: meddiagnose-alerts
+    rules:
+      - alert: HighErrorRate
+        expr: rate(meddiagnose_errors_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High 5xx error rate on MedDiagnose API"
+          description: "Error rate is {{ $value }} errors/sec over the last 5 minutes."
+
+      - alert: HighLatency
+        expr: meddiagnose_request_duration_ms_avg > 5000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High average request latency on MedDiagnose API"
+          description: "Average request duration is {{ $value }}ms."
+
+      - alert: APIDown
+        expr: up{job="meddiagnose-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MedDiagnose API is down"
+          description: "Prometheus cannot scrape the API target."
+
+      - alert: InferenceDown
+        expr: up{job="meddiagnose-inference"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MedDiagnose inference service is down"
+          description: "Prometheus cannot scrape the inference target."
